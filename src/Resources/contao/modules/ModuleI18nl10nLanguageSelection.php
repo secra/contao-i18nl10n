@@ -70,6 +70,7 @@ class ModuleI18nl10nLanguageSelection extends \Module
         $time       = time();
         $items      = array();
         $langNative = I18nl10n::getInstance()->getNativeLanguageNames();
+        $objDefaultPage = clone $objPage;
 
         $sqlPublishedCondition = BE_USER_LOGGED_IN
             ? ''
@@ -92,13 +93,21 @@ class ModuleI18nl10nLanguageSelection extends \Module
             ->fetchAllassoc();
 
         // HOOK: add custom logic
-        if (isset($GLOBALS['TL_HOOKS']['i18nl10nLanguageSelection'])
-            && is_array($GLOBALS['TL_HOOKS']['i18nl10nLanguageSelection'])
-        ) {
-            foreach ($GLOBALS['TL_HOOKS']['i18nl10nLanguageSelection'] as $callback) {
-                $this->import($callback[0]);
-                $arrTranslations = $this->$callback[0]->$callback[1]($arrTranslations);
-            }
+        // if (isset($GLOBALS['TL_HOOKS']['i18nl10nLanguageSelection'])
+        //     && is_array($GLOBALS['TL_HOOKS']['i18nl10nLanguageSelection'])
+        // ) {
+        //     foreach ($GLOBALS['TL_HOOKS']['i18nl10nLanguageSelection'] as $callback) {
+        //         $this->import($callback[0]);
+        //         $arrTranslations = $this->$callback[0]->$callback[1]($arrTranslations);
+        //     }
+        // }
+
+        $language = empty($objPage->language) || empty($objPage->forceRowLanguage)
+            ? $GLOBALS['TL_LANGUAGE']
+            : $objPage->language;
+        
+        if($language != $arrLanguages["default"]){
+            $objDefaultPage = \PageModel::findById($objPage->id);
         }
 
         if (!empty($arrTranslations)) {
@@ -109,11 +118,11 @@ class ModuleI18nl10nLanguageSelection extends \Module
                 array_unshift(
                     $arrTranslations,
                     array(
-                        'id'        => $objPage->id,
-                        'language'  => $objPage->rootLanguage,
-                        'title'     => $objPage->title,
-                        'pageTitle' => $objPage->pageTitle,
-                        'alias'     => $objPage->alias
+                        'id'        => $objDefaultPage->id,
+                        'language'  => $objDefaultPage->rootLanguage,
+                        'title'     => $objDefaultPage->title,
+                        'pageTitle' => $objDefaultPage->pageTitle,
+                        'alias'     => $objDefaultPage->alias
                     )
                 );
             }
@@ -133,11 +142,11 @@ class ModuleI18nl10nLanguageSelection extends \Module
                         array_push(
                             $items,
                             array(
-                                'id'               => empty($row['pid']) ? $objPage->id : $row['pid'],
-                                'alias'            => empty($row['alias']) ? $objPage->alias : $row['alias'],
-                                'title'            => empty($row['title']) ? $objPage->title : $row['title'],
+                                'id'               => empty($row['pid']) ? $objDefaultPage->id : $row['pid'],
+                                'alias'            => empty($row['alias']) ? $objDefaultPage->alias : $row['alias'],
+                                'title'            => empty($row['title']) ? $objDefaultPage->title : $row['title'],
                                 'pageTitle'        => empty($row['pageTitle'])
-                                    ? $objPage->pageTitle
+                                    ? $objDefaultPage->pageTitle
                                     : $row['pageTitle'],
                                 'language'         => $language,
                                 'isActive'         => $language === $GLOBALS['TL_LANGUAGE'],
