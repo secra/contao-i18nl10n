@@ -26,7 +26,13 @@ class IsVisibleElementHook
         if (TL_MODE == 'BE') {
             return true;
         }
-
+		
+		// if ($objElement instanceof \ContentModel){
+			// var_dump($blnIsVisible);
+			// var_dump($objElement->language);
+			// var_dump($objPage->alias);
+		// }		
+		
         if ($blnIsVisible && $objElement->language) {
             // Check if given language is valid or fallback should be used
             $strLanguage = $objPage->useFallbackLanguage

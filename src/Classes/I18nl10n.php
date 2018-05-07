@@ -144,7 +144,7 @@ class I18nl10n extends \Controller
     public function findPublishedL10nPage($objPage, $strLang = null, $blnReplaceMetaFields = false)
     {
         // If no page alias is defined, don't continue
-        if (empty($objPage->mainAlias)) {
+        if (empty($objPage->alias)) {
             return $objPage;
         }
 
@@ -183,8 +183,9 @@ class I18nl10n extends \Controller
                 FROM tl_page_i18nl10n
                 WHERE pid = (SELECT id FROM tl_page WHERE pid = ? AND alias = ?) AND language = ?')
             ->limit(1)
-            ->execute($objPage->rootId, $objPage->mainAlias, $strLang ?: $GLOBALS['TL_LANGUAGE'])
+            ->execute($objPage->rootId, $objPage->alias, $strLang ?: $GLOBALS['TL_LANGUAGE'])
             ->fetchAssoc();
+
 
         $arrL10nPage = $arrL10nRelatedPages[0];
         $arrL10nParentPage = $arrL10nRelatedPages[1];
@@ -196,17 +197,23 @@ class I18nl10n extends \Controller
             return null;
         }
 
+		
+		
         // Replace page information only if current page exists
         if ($arrL10nPage['l10nPid'] === $objPage->id) {
             // Replace current page information
             foreach ($fields as $field) {
                 if ($arrL10nPage[$field]) {
-                    $objPage->$field = $arrL10nPage[$field];
+                    $objPage->{$field} = $arrL10nPage[$field];
                 } elseif ($field === 'pageTitle') { // If empty pageTitle use title
-                    $objPage->$field = $arrL10nPage['title'];
+                    $objPage->{$field} = $arrL10nPage['title'];
                 }
             }
-
+			
+			// was missing, very important part :/
+			$objPage->alias = $arrL10nPage['l10nAlias'];
+			
+			
             // Replace parent page information
             if ($arrL10nParentPage['l10nPid'] === $objPage->pid) {
                 $objPage->parentAlias = $arrL10nParentPage['l10nAlias'];
