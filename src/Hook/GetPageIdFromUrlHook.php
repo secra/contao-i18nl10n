@@ -24,11 +24,20 @@ class GetPageIdFromUrlHook
      */
     public function getPageIdFromUrl(array $arrFragments)
     {
-        // Check if url fragments are available (see #66)
+		$blnDebug = false;
+		if($_COOKIE["dev"] == 'Markus'){
+			$blnDebug = false;
+		}
+		
+		// Check if url fragments are available (see #66)
         if (empty($arrFragments[0])) {
             return $arrFragments;
         }
-
+		
+		if($blnDebug){
+			var_dump($arrFragments);
+		}
+		       
         $arrFragments = array_map('urldecode', $arrFragments);
         $arrLanguages = I18nl10n::getInstance()->getLanguagesByDomain();
 
@@ -37,27 +46,20 @@ class GetPageIdFromUrlHook
             return $arrFragments;
         }
 		
-        /*
-         * Extract the language snippet from URL
-         */
-        // Get default language
-        $strLanguage        = $arrLanguages['default'];
-        $arrMappedFragments = $this->mapUrlFragments($arrFragments);
+		// Get default language
+        $strLanguage  = $arrLanguages['default'];
 		
-		// var_dump($arrFragments);
-		// var_dump($arrMappedFragments);
-		// exit;
-
-        // try to get language by i18nl10n URL
-        if (\Config::get('i18nl10n_urlParam') === 'url') {
-            // First entry must be language
-			// probably default language! Magmell 01.05.2018
-			if(count($arrFragments) == 1){
-			} else {
+		if (\Config::get('i18nl10n_urlParam') === 'url') {
+			// first fragment is language - not for default language!
+			if(in_array($arrFragments[0], $arrLanguages['localizations'])) {
 				$strLanguage = $arrFragments[0];
-			}			
-        // try to get language by suffix
-        } elseif (\Config::get('i18nl10n_urlParam') === 'alias' && !\Config::get('disableAlias')) {
+				$arrFragments = array_delete($arrFragments, 0);				
+			}
+			// fix auto_item issue, was auto-added because the language handling was broken
+			if($arrFragments[0] == 'auto_item') {
+				$arrFragments = array_delete($arrFragments, 0);	
+			}
+		} elseif (\Config::get('i18nl10n_urlParam') === 'alias' && !\Config::get('disableAlias')) {
             $intLastIndex = count($arrFragments) - 1;
             $strRegex     = '@^([_\-\pL\pN\.]*(?=\.))?\.?([a-z]{2})$@u';
 
@@ -67,18 +69,28 @@ class GetPageIdFromUrlHook
             }
         } elseif (\Input::get('language')) {
             $strLanguage = \Input::get('language');
-        }
-
-
+        }		
+		
+        if($blnDebug){
+			var_dump("language handling done");
+			var_dump($strLanguage);
+			var_dump($arrFragments);
+		}
+        
+        $arrMappedFragments = $this->mapUrlFragments($arrFragments);
+		
         /*
          * Arrange correct i18nl10n alias
          */
         // try to find localized page by alias
         $arrAlias = $this->findAliasByLocalizedAliases($arrMappedFragments, $strLanguage);
 		
-		
-		// var_dump($arrAlias);
-		// exit;
+		if($blnDebug){
+			var_dump("alias");
+			var_dump($arrAlias);
+			var_dump("mapped fragments");
+			var_dump($arrMappedFragments);
+		}
 
         // Remove first entry (will be replaced by alias further on)
         array_shift($arrMappedFragments);
@@ -95,9 +107,19 @@ class GetPageIdFromUrlHook
                 }
             }
         }
+		
+		if($blnDebug){
+			var_dump("remapping for folders");
+			var_dump($arrMappedFragments);
+		}
 
         // Insert alias
         array_unshift($arrMappedFragments, $arrAlias['alias']);
+		
+		if($blnDebug){
+			var_dump("insert alias again");
+			var_dump($arrMappedFragments);
+		}
 
         /*
          * Add language to URL fragments
@@ -113,8 +135,10 @@ class GetPageIdFromUrlHook
             array_insert($arrMappedFragments, 1, array('auto_item'));
         }
 		
-		// var_dump($arrMappedFragments);
-		// exit;
+		if($blnDebug){
+			var_dump("language handling & autoitem");
+			var_dump($arrMappedFragments);
+		}
 		
         return $arrMappedFragments;
     }
@@ -128,27 +152,18 @@ class GetPageIdFromUrlHook
      */
     private function mapUrlFragments($arrFragments)
     {
+		$blnAutoItem = false;
+		
         // Delete auto_item
         if (\Config::get('useAutoItem') && $arrFragments[1] === 'auto_item') {
             $arrFragments = array_delete($arrFragments, 1);
-        }
-
-        // Delete language if first part of url
-        if (\Config::get('i18nl10n_urlParam') === 'url' && count($arrFragments) > 1) {
-            $arrFragments = array_delete($arrFragments, 0);
-        // Delete language if part of alias
-        } elseif (\Config::get('i18nl10n_urlParam') === 'alias' && !\Config::get('disableAlias')) {
-            $lastIndex = count($arrFragments) - 1;
-            $strRegex  = '@^([_\-\pL\pN\.]*(?=\.))?\.?([a-z]{2})$@u';
-
-            // last element should contain language info
-            if (preg_match($strRegex, $arrFragments[$lastIndex], $matches)) {
-                $arrFragments[$lastIndex] = $matches[1];
-            }
+			$blnAutoItem = true;
         }
 		
 		// optional step: Contao split everything in single items - build the alias together again
-		$arrFragments = array(implode('/', $arrFragments));		
+		if(!$blnAutoItem && count($arrFragments) > 1) {
+			$arrFragments = array(implode('/', $arrFragments));		
+		}
 
         return $arrFragments;
     }
