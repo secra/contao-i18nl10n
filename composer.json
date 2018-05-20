@@ -1,5 +1,5 @@
 {
-  "name": "exploreimpact/contao-i18nl10n",
+  "name": "magmell-agentur/contao-i18nl10n",
   "type":"contao-bundle",
   "description": "The simplest way to create and manage multi-language sites with Contao.",
   "keywords": [
