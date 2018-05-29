@@ -25,34 +25,24 @@ class GenerateFrontendUrlHook
      */
     public function generateFrontendUrl($arrRow, $strParams, $strUrl)
     {
-		
-		
-        if (!is_array($arrRow)) {
+
+        if (! is_array($arrRow)) {
             throw new \Exception('not an associative array.');
         }
 
-        // @todo:   Call I18nl10n as service, not singleton pattern
         $arrLanguages = I18nl10n::getInstance()->getLanguagesByDomain();
         $arrL10nAlias = null;
-		
-		
 
-        // Append language if existing and forced (by i18nl10n)
-        $language     = empty($arrRow['language']) || empty($arrRow['forceRowLanguage'])
-            ? $GLOBALS['TL_LANGUAGE']
+        $language = empty(  // en
+            $arrRow['language'])
+            || empty($arrRow['forceRowLanguage']
+        ) ?
+            $GLOBALS['TL_LANGUAGE']
             : $arrRow['language'];
-		
-		
-				
-		// Magmell 01.05.2018 - overwrite, I think the two lines above are wrong / no longer working
-		$language = $arrRow['language'];
-		// var_dump($arrRow['language']);
-		// var_dump($arrRow['forceRowLanguage']);
-		// var_dump($arrRow);
-		// var_dump($GLOBALS['TL_LANGUAGE']);
-		// var_dump($arrLanguages);
-		// exit;
-
+                
+        // Magmell 01.05.2018 - overwrite, I think the two lines above are wrong / no longer working
+        // 29.05.2018. with this reverted links in the navigation are working properly
+        // $language = $arrRow['language']; 
 
         // Try to get l10n alias by language and pid
         if ($language !== $arrLanguages['default']) {
@@ -91,13 +81,12 @@ class GenerateFrontendUrlHook
                 $strL10nUrl = 'index.php/' . $strL10nUrl;
             }
         } elseif (\Config::get('i18nl10n_urlParam') === 'url') {
-			
-			$strL10nUrl = '';
-			
-			// only add folder if not default language!
-			if($language != $arrLanguages["default"]){
-				$strL10nUrl = $language . '/';
-			}
+            $strL10nUrl = '';
+            
+            // only add folder if not default language!
+            if($language != $arrLanguages["default"]){
+                $strL10nUrl = $language . '/';
+            }
             $strL10nUrl .= $alias . $strParams . \Config::get('urlSuffix');
 
             /*
