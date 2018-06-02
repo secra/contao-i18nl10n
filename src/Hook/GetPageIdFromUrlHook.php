@@ -97,6 +97,7 @@ class GetPageIdFromUrlHook
 
         // if alias has folder, remove related entries
         if (strpos($arrAlias['alias'], '/') !== false || strpos($arrAlias['l10nAlias'], '/') !== false) {
+
             $arrAliasFragments = array_merge(explode('/', $arrAlias['alias']), explode('/', $arrAlias['l10nAlias']));
 
             // remove alias parts
@@ -159,11 +160,6 @@ class GetPageIdFromUrlHook
             $arrFragments = array_delete($arrFragments, 1);
 			$blnAutoItem = true;
         }
-		
-		// optional step: Contao split everything in single items - build the alias together again
-		if(!$blnAutoItem && count($arrFragments) > 1) {
-			$arrFragments = array(implode('/', $arrFragments));		
-		}
 
         return $arrFragments;
     }
@@ -197,11 +193,11 @@ class GetPageIdFromUrlHook
         // Find alias usages by language from tl_page and tl_page_i18nl10n
         $sql = "(SELECT pid as pageId, alias, 'tl_page_i18nl10n' as 'source'
                  FROM tl_page_i18nl10n
-                 WHERE alias IN(?) AND language = ?)
+                 WHERE alias IN('".$strAlias."') AND language = ?)
                 UNION
                 (SELECT id as pageId, alias, 'tl_page' as 'source'
                  FROM tl_page
-                 WHERE alias IN(?))
+                 WHERE alias IN('".$strAlias."'))
                 ORDER BY "
             . $database->findInSet('alias', $arrAliasGuess) . ", "
             . $database->findInSet('source', array('tl_page_i18nl10n', 'tl_page'));
@@ -209,9 +205,7 @@ class GetPageIdFromUrlHook
         $objL10nPage = $database
             ->prepare($sql)
             ->execute(
-                $strAlias,
-                $strLanguage,
-                $strAlias
+                $strLanguage
             );
 
         $strHost = \Environment::get('host');
