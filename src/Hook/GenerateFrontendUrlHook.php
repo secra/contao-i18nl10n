@@ -12,6 +12,14 @@ use Verstaerker\I18nl10nBundle\Classes\I18nl10n;
  */
 class GenerateFrontendUrlHook
 {
+    /** @var \Contao\Database $database */
+    protected $database;
+
+    public function __construct()
+    {
+        $this->database = \Database::getInstance();
+    }
+
     /**
      * @param $arrRow
      * @param $strParams
@@ -25,15 +33,17 @@ class GenerateFrontendUrlHook
      */
     public function generateFrontendUrl($arrRow, $strParams, $strUrl)
     {
-
         if (! is_array($arrRow)) {
             throw new \Exception('not an associative array.');
         }
 
+        global $objPage;
+
         $arrLanguages = I18nl10n::getInstance()->getLanguagesByDomain();
         $arrL10nAlias = null;
+        $arrChangelanguageAlias = null;
 
-        $language = empty(  // en
+        $language = empty(
             $arrRow['language'])
             || empty($arrRow['forceRowLanguage']
         ) ?
@@ -44,12 +54,23 @@ class GenerateFrontendUrlHook
         // 29.05.2018. with this reverted links in the navigation are working properly
         // $language = $arrRow['language']; 
 
-        // Try to get l10n alias by language and pid
+        // Try to get l10n alias iby language and pd
         if ($language !== $arrLanguages['default']) {
-            $database = \Database::getInstance();
-            $arrL10nAlias = $database
+            $arrL10nAlias = $this->database
                 ->prepare('SELECT alias FROM tl_page_i18nl10n WHERE pid = ? AND language = ?')
                 ->execute($arrRow['id'], $language)
+                ->fetchAssoc();
+
+            // get me the "opposite" page info => for changelanguage plugin
+            $arrChangelanguageAlias = $this->database
+                ->prepare('SELECT alias FROM tl_page WHERE id = ? AND language = ?')
+                ->execute($arrRow['id'], $arrLanguages['default'])
+                ->fetchAssoc();
+        } else {
+            // get me the "opposite" page info => for changelanguage plugin
+            $arrChangelanguageAlias = $this->database
+                ->prepare('SELECT alias FROM tl_page_i18nl10n WHERE pid = ? AND language = ?')
+                ->execute($arrRow['id'], $objPage->language)
                 ->fetchAssoc();
         }
 
@@ -61,6 +82,19 @@ class GenerateFrontendUrlHook
         $regex = '@/auto_item|/language/[a-z]{2}|[\?&]language=[a-z]{2}@';
         $strParams = preg_replace($regex, '', $strParams);
         $strUrl    = preg_replace($regex, '', $strUrl);
+
+
+        if (!isset($_GET['items']) && \Config::get('useAutoItem') && isset($_GET['auto_item']))
+        {
+            \Input::setGet('items', \Input::get('auto_item'));
+        }
+
+        // separate logic for pagelanguage - see if we have to add an alias for an item
+        if($language !== $objPage->language) {
+            if($arrChangelanguageAlias['alias'] === $objPage->alias && $item = \Input::get("items")) {
+               $alias .= "/" . $item;
+            }
+        }
 
         // If alias is disabled add language to get param end return
         if (\Config::get('disableAlias')) {
@@ -87,6 +121,7 @@ class GenerateFrontendUrlHook
             if($language != $arrLanguages["default"]){
                 $strL10nUrl = $language . '/';
             }
+
             $strL10nUrl .= $alias . $strParams . \Config::get('urlSuffix');
 
             /*

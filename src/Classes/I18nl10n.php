@@ -28,7 +28,7 @@ class I18nl10n extends \Controller
      *
      * @var array
      */
-    protected $unsupportedModules = array('news', 'calendar');
+    protected $unsupportedModules = array();
 
     /**
      * Class instance
