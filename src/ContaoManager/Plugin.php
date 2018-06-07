@@ -2,6 +2,8 @@
 
 namespace Verstaerker\I18nl10nBundle\ContaoManager;
 
+use Contao\CalendarBundle\ContaoCalendarBundle;
+use Contao\NewsBundle\ContaoNewsBundle;
 use Verstaerker\I18nl10nBundle\VerstaerkerI18nl10nBundle;
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
@@ -22,7 +24,11 @@ class Plugin implements BundlePluginInterface
     {
         return [
             BundleConfig::create(VerstaerkerI18nl10nBundle::class)
-                ->setLoadAfter([ContaoCoreBundle::class])
+                ->setLoadAfter([
+                    ContaoCoreBundle::class,
+                    ContaoNewsBundle::class,
+                    ContaoCalendarBundle::class
+                ])
                 ->setReplace(['i18nl10n']),
         ];
     }
