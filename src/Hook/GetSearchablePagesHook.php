@@ -197,7 +197,6 @@ class GetSearchablePagesHook
                 AND (tl_page.stop = '' OR tl_page.stop > $time)
                 AND tl_page.published = 1
                 AND tl_page.type != 'root'
-                AND tl_page.hide = ''
                 ");
 
         if ($objPage->numRows > 1)
