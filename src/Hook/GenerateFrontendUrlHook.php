@@ -49,8 +49,16 @@ class GenerateFrontendUrlHook
         ) ?
             $GLOBALS['TL_LANGUAGE']
             : $arrRow['language'];
-                
-        // Magmell 01.05.2018 - overwrite, I think the two lines above are wrong / no longer working
+        
+		// override language if set in the params:
+		// language logic for redirect is wrong, needs to be included here - 18.10.2018 MM
+		if(strpos($strParams, '/language/de') !== false){
+			$language = 'de';
+		} elseif(strpos($strParams, '/language/en') !== false) {
+			$language = 'en';
+		}
+		
+		// Magmell 01.05.2018 - overwrite, I think the two lines above are wrong / no longer working
         // 29.05.2018. with this reverted links in the navigation are working properly
         // $language = $arrRow['language']; 
 
@@ -166,6 +174,11 @@ class GenerateFrontendUrlHook
             }
         }
 
+		// problem: absolute URLs - coming from a redirect contain a domain - it should at least really be an absolute link MM 18.10.2018
+		if(strlen($strL10nUrl) > 0 && substr($strL10nUrl, 0, 1) != '/'){
+			$strL10nUrl = '/'. $strL10nUrl;
+		}
+		
         return $strL10nUrl;
     }
 }
