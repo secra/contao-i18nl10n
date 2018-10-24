@@ -101,6 +101,11 @@ class GetSearchablePagesHook
         } else {
             $strPageAlias = $strPageUrl;
         }
+		
+		// remove leading slash if first char
+		if(strpos($strPageAlias, '/') === 0){
+			$strPageAlias = substr($strPageAlias, 1);			
+		}
 
         // Remove localization fragment from the beginning f.e en/, fr/, es/, etc.
         if ($strPageAlias[2] === "/" && in_array(substr($strPageAlias, 0, 2), $arrLocalizations))
