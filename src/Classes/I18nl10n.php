@@ -19,7 +19,7 @@ namespace Verstaerker\I18nl10nBundle\Classes;
  *
  * Global Functions for i18nl10n module
  *
- * @package Verstaerker\I18nl10n\Classes
+ * @package Verstaerker\I18nl10nBundle\Classes
  */
 class I18nl10n extends \Controller
 {
