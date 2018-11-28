@@ -2,6 +2,8 @@
 
 namespace Verstaerker\I18nl10nBundle\Hook;
 
+use Contao\Database;
+use Contao\System;
 use Verstaerker\I18nl10nBundle\Classes\I18nl10n;
 
 /**
@@ -17,7 +19,7 @@ class GenerateFrontendUrlHook
 
     public function __construct()
     {
-        $this->database = \Database::getInstance();
+        $this->database = Database::getInstance();
     }
 
     /**
@@ -175,7 +177,7 @@ class GenerateFrontendUrlHook
         }
 
 		// problem: absolute URLs - coming from a redirect contain a domain - it should at least really be an absolute link MM 18.10.2018
-		if(strlen($strL10nUrl) > 0 && substr($strL10nUrl, 0, 1) != '/'){
+		if (strlen($strL10nUrl) > 0 && substr($strL10nUrl, 0, 1) != '/' && strpos(System::getReferer(), "contao?") !== 0) {
 			$strL10nUrl = '/'. $strL10nUrl;
 		}
 		
