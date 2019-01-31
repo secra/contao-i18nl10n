@@ -160,7 +160,7 @@ class GetSearchablePagesHook
     {
         $strItem = '';
 
-        $arrAliasFragments = explode("/", $alias);
+        $arrAliasFragments = parse_url($alias, PHP_URL_PATH);
 
         $objPage = false;
 
