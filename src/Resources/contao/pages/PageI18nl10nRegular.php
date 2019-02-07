@@ -181,10 +181,12 @@ class PageI18nl10nRegular extends \PageRegular
 
         foreach ($arrPages as $page) {
             $page['forceRowLanguage'] = true;
+            // dirty hack to get the correct root ID from original page
+            $page['id'] = $page['pid'];
             $strUrl = \Controller::generateFrontendUrl($page);
             $links[] = "<link "
                 . "rel=\"alternate\" "
-                . "href=\"/{$strUrl}\" "
+                . "href=\"{$strUrl}\" "
                 . "hreflang=\"{$page['language']}\" "
                 . "title=\"{$page['title']}\" />";
         }
