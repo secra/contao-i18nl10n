@@ -14,6 +14,8 @@
 
 namespace Verstaerker\I18nl10nBundle\Classes;
 
+use Contao\Cache;
+
 /**
  * Class I18nl10n
  *
