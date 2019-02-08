@@ -177,7 +177,7 @@ class GenerateFrontendUrlHook
         }
 
 		// problem: absolute URLs - coming from a redirect contain a domain - it should at least really be an absolute link MM 18.10.2018
-		if (strlen($strL10nUrl) > 0 && substr($strL10nUrl, 0, 1) != '/' && strpos(System::getReferer(), "contao?") !== 0) {
+		if (strlen($strL10nUrl) > 0 && substr($strL10nUrl, 0, 1) != '/' && strpos(System::getReferer(), "contao?") !== false) {
 			$strL10nUrl = '/'. $strL10nUrl;
 		}
 		
