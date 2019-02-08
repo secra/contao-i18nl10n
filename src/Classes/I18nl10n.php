@@ -321,10 +321,16 @@ class I18nl10n extends \Controller
      */
     public function getLanguagesByDomain($strDomain = null)
     {
-        /** @var \Database\Mysqli\Result $objRootPage */
-        $objRootPage = $this->getRootPageByDomain($strDomain);
+        $token = md5(__FUNCTION__.$strDomain);
 
-        $arrLanguages = $this->mapLanguagesFromDatabaseRootPageResult($objRootPage);
+        if (!$arrLanguages = Cache::get($token)) {
+            /** @var \Database\Mysqli\Result $objRootPage */
+            $objRootPage = $this->getRootPageByDomain($strDomain);
+
+            $arrLanguages = $this->mapLanguagesFromDatabaseRootPageResult($objRootPage);
+
+            Cache::set($token, $arrLanguages);
+        }
 
         return array_shift($arrLanguages);
     }
